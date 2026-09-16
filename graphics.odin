@@ -96,6 +96,16 @@ graphics_draw_rect :: proc(ctx: ^Graphics_Context, rect: Rect, color: Color, fil
 	graphics_draw_rect_raylib(ctx, rect, color, filled)
 }
 
+// Draw a visual node body with optional round corners and border.
+graphics_draw_box :: proc(
+	ctx: ^Graphics_Context,
+	rect: Rect,
+	background, border: Color,
+	radius, border_width: f64,
+) {
+	graphics_draw_box_raylib(ctx, rect, background, border, radius, border_width)
+}
+
 graphics_draw_text :: proc(
 	ctx: ^Graphics_Context,
 	text: string,

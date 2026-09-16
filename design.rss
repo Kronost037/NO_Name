@@ -9,6 +9,8 @@ theme Nightfall active {
     text: #eff4ff
     muted: #a8b5d3
     success: #42d3a2
+    border: #2d3b60
+    button_border: #5474b5
 }
 
 component Brand {
@@ -34,9 +36,12 @@ component Brand {
 
 component StatusCard {
     width: 340
-    height: 190
+    height: 200
     padding: 24
     background: $panel
+    radius: 16
+    border_color: $border
+    border_width: 1
     layout: vertical
     gap: 10
 
@@ -51,6 +56,7 @@ component StatusCard {
         height: 76
         content: "Components, themes and layout are resolved in real time."
         font_size: 14
+        line_height: 20
         text_color: $text
     }
 
@@ -64,9 +70,12 @@ component StatusCard {
 
 component GuideCard {
     width: 340
-    height: 190
+    height: 200
     padding: 24
     background: $panel_alt
+    radius: 16
+    border_color: $border
+    border_width: 1
     layout: vertical
     gap: 10
 
@@ -81,6 +90,7 @@ component GuideCard {
         height: 76
         content: "Choose an action on the right and start building your next interface."
         font_size: 14
+        line_height: 20
         text_color: $text
     }
 
@@ -96,6 +106,7 @@ component AccentRail {
     width: 8
     height: 420
     background: $accent
+    radius: 4
 }
 
 component Menu {
@@ -103,6 +114,9 @@ component Menu {
     height: 410
     padding: 28
     background: $panel_alt
+    radius: 20
+    border_color: $border
+    border_width: 1
     layout: vertical
     gap: 12
 
@@ -111,6 +125,7 @@ component Menu {
         content: "CONTROL DECK"
         font_size: 29
         text_color: $text
+        text_align: center
     }
 
     Text {
@@ -118,15 +133,21 @@ component Menu {
         content: "Choose your next move"
         font_size: 14
         text_color: $muted
+        text_align: center
     }
 
     Button {
         width: 304
         height: 48
         background: $button
+        radius: 10
+        border_color: $button_border
+        border_width: 1
         content: "New Canvas"
         font_size: 18
         text_color: $text
+        text_align: center
+        text_vertical_align: middle
         hover {
             background: $button_hover
         }
@@ -136,9 +157,14 @@ component Menu {
         width: 304
         height: 48
         background: $button
+        radius: 10
+        border_color: $button_border
+        border_width: 1
         content: "Open Design"
         font_size: 18
         text_color: $text
+        text_align: center
+        text_vertical_align: middle
         hover {
             background: $button_hover
         }
@@ -148,9 +174,14 @@ component Menu {
         width: 304
         height: 48
         background: $button
+        radius: 10
+        border_color: $button_border
+        border_width: 1
         content: "Theme Studio"
         font_size: 18
         text_color: $text
+        text_align: center
+        text_vertical_align: middle
         hover {
             background: $button_hover
         }
@@ -160,9 +191,14 @@ component Menu {
         width: 304
         height: 48
         background: $button
+        radius: 10
+        border_color: $button_border
+        border_width: 1
         content: "Export Build"
         font_size: 18
         text_color: $text
+        text_align: center
+        text_vertical_align: middle
         hover {
             background: $button_hover
         }

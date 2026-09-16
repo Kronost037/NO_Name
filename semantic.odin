@@ -175,6 +175,22 @@ property_specs :: []Property_Spec {
 		capability = .Any_Node,
 	},
 	{
+		name = "border_color",
+		type = .Color,
+		inherited = false,
+		required = false,
+		default_value = "transparent",
+		capability = .Any_Node,
+	},
+	{
+		name = "border_width",
+		type = .Number,
+		inherited = false,
+		required = false,
+		default_value = "0",
+		capability = .Any_Node,
+	},
+	{
 		name = "font",
 		type = .String,
 		inherited = true,
@@ -196,6 +212,38 @@ property_specs :: []Property_Spec {
 		inherited = true,
 		required = false,
 		default_value = "white",
+		capability = .Text_Capable,
+	},
+	{
+		name = "text_align",
+		type = .Enum,
+		inherited = true,
+		required = false,
+		default_value = "left",
+		capability = .Text_Capable,
+	},
+	{
+		name = "text_vertical_align",
+		type = .Enum,
+		inherited = true,
+		required = false,
+		default_value = "top",
+		capability = .Text_Capable,
+	},
+	{
+		name = "line_height",
+		type = .Number,
+		inherited = true,
+		required = false,
+		default_value = "0",
+		capability = .Text_Capable,
+	},
+	{
+		name = "letter_spacing",
+		type = .Number,
+		inherited = true,
+		required = false,
+		default_value = "0",
 		capability = .Text_Capable,
 	},
 	{
@@ -437,7 +485,7 @@ validate_numeric_value :: proc(property: Property_Decl) -> string {
 		return fmt.aprintf("numeric value for property '%s' must be finite", property.name)
 	}
 	switch property.name {
-	case "width", "height", "padding", "gap", "radius":
+	case "width", "height", "padding", "gap", "radius", "border_width", "line_height", "letter_spacing":
 		if value < 0 {
 			return fmt.aprintf("property '%s' must be non-negative", property.name)
 		}
@@ -545,6 +593,18 @@ validate_property_value :: proc(
 				property.row,
 				property.col,
 			)
+		}
+	}
+
+	if expected == .Enum && property.name == "text_align" {
+		if property.value.data != "left" && property.value.data != "center" && property.value.data != "right" {
+			append_error(result, "invalid text_align; expected 'left', 'center', or 'right'", property.row, property.col)
+		}
+	}
+
+	if expected == .Enum && property.name == "text_vertical_align" {
+		if property.value.data != "top" && property.value.data != "middle" && property.value.data != "bottom" {
+			append_error(result, "invalid text_vertical_align; expected 'top', 'middle', or 'bottom'", property.row, property.col)
 		}
 	}
 }

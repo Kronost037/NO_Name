@@ -71,6 +71,52 @@ graphics_draw_rect_raylib :: proc(ctx: ^Graphics_Context, rect: Rect, color: Col
 	}
 }
 
+graphics_draw_box_raylib :: proc(
+	ctx: ^Graphics_Context,
+	rect: Rect,
+	background, border: Color,
+	radius, border_width: f64,
+) {
+	if rect.width <= 0 || rect.height <= 0 {
+		return
+	}
+
+	rectangle := rl.Rectangle{f32(rect.x), f32(rect.y), f32(rect.width), f32(rect.height)}
+	shortest_side := rect.width
+	if rect.height < shortest_side {
+		shortest_side = rect.height
+	}
+	clamped_radius := radius
+	if clamped_radius < 0 {
+		clamped_radius = 0
+	}
+	if clamped_radius > shortest_side / 2 {
+		clamped_radius = shortest_side / 2
+	}
+	roundness := f32(0)
+	if shortest_side > 0 {
+		roundness = f32(clamped_radius / (shortest_side / 2))
+	}
+
+	background_color := rl.Color{background.r, background.g, background.b, background.a}
+	border_color := rl.Color{border.r, border.g, border.b, border.a}
+	if background.a != 0 {
+		if roundness > 0 {
+			rl.DrawRectangleRounded(rectangle, roundness, 8, background_color)
+		} else {
+			rl.DrawRectangleRec(rectangle, background_color)
+		}
+	}
+
+	if border.a != 0 && border_width > 0 {
+		if roundness > 0 {
+			rl.DrawRectangleRoundedLinesEx(rectangle, roundness, 8, f32(border_width), border_color)
+		} else {
+			rl.DrawRectangleLinesEx(rectangle, f32(border_width), border_color)
+		}
+	}
+}
+
 graphics_draw_text_raylib :: proc(
 	ctx: ^Graphics_Context,
 	text: string,
@@ -89,19 +135,47 @@ graphics_draw_text_raylib :: proc(
 	rl.DrawText(cstr, i32(x), i32(y), i32(font_size), rl_color)
 }
 
+graphics_measure_text_raylib :: proc(text: string, font_size: f64) -> f64 {
+	cstr := strings.clone_to_cstring(text)
+	defer delete(cstr)
+	return f64(rl.MeasureText(cstr, i32(font_size)))
+}
+
+graphics_draw_aligned_text_raylib :: proc(
+	ctx: ^Graphics_Context,
+	text: string,
+	x, y, available_width, font_size: f64,
+	color: Color,
+	align: string,
+) {
+	draw_x := x
+	text_width := graphics_measure_text_raylib(text, font_size)
+	switch align {
+	case "center":
+		draw_x += (available_width - text_width) / 2
+	case "right":
+		draw_x += available_width - text_width
+	}
+	graphics_draw_text_raylib(ctx, text, draw_x, y, font_size, color)
+}
+
 // Draw text within a node's content width. Layout remains explicit; this only
 // wraps the visual text so a long label cannot bleed into a neighbouring node.
 graphics_draw_wrapped_text_raylib :: proc(
 	ctx: ^Graphics_Context,
 	text: string,
-	x, y, max_width, max_height, font_size: f64,
+	x, y, max_width, max_height, font_size, line_height: f64,
 	color: Color,
+	align: string,
 ) {
 	if text == "" || max_width <= 0 || max_height <= 0 {
 		return
 	}
 
-	line_height := font_size * 1.25
+	actual_line_height := line_height
+	if actual_line_height <= 0 {
+		actual_line_height = font_size * 1.25
+	}
 	line_y := y
 	line_start := 0
 	last_space := -1
@@ -112,8 +186,8 @@ graphics_draw_wrapped_text_raylib :: proc(
 			if line_y + font_size > y + max_height {
 				return
 			}
-			graphics_draw_text_raylib(ctx, text[line_start:i], x, line_y, font_size, color)
-			line_y += line_height
+			graphics_draw_aligned_text_raylib(ctx, text[line_start:i], x, line_y, max_width, font_size, color, align)
+			line_y += actual_line_height
 			i += 1
 			line_start = i
 			last_space = -1
@@ -125,9 +199,7 @@ graphics_draw_wrapped_text_raylib :: proc(
 		}
 
 		candidate := text[line_start : i + 1]
-		candidate_cstr := strings.clone_to_cstring(candidate)
-		candidate_width := f64(rl.MeasureText(candidate_cstr, i32(font_size)))
-		delete(candidate_cstr)
+		candidate_width := graphics_measure_text_raylib(candidate, font_size)
 		if candidate_width > max_width {
 			break_at := i
 			next_start := i
@@ -143,8 +215,8 @@ graphics_draw_wrapped_text_raylib :: proc(
 			if line_y + font_size > y + max_height {
 				return
 			}
-			graphics_draw_text_raylib(ctx, text[line_start:break_at], x, line_y, font_size, color)
-			line_y += line_height
+			graphics_draw_aligned_text_raylib(ctx, text[line_start:break_at], x, line_y, max_width, font_size, color, align)
+			line_y += actual_line_height
 			line_start = next_start
 			i = next_start
 			last_space = -1
@@ -155,7 +227,7 @@ graphics_draw_wrapped_text_raylib :: proc(
 	}
 
 	if line_start < len(text) && line_y + font_size <= y + max_height {
-		graphics_draw_text_raylib(ctx, text[line_start:], x, line_y, font_size, color)
+		graphics_draw_aligned_text_raylib(ctx, text[line_start:], x, line_y, max_width, font_size, color, align)
 	}
 }
 
@@ -206,11 +278,13 @@ render_node_tree :: proc(ctx: ^Graphics_Context, node: ^Node, active_theme: Them
 		bg_color_str = "#000000"
 	}
 	bg_color := hex_to_color(bg_color_str)
+	radius := parse_number_gfx(get_node_property(node, "radius", active_theme), 0)
+	border_color := hex_to_color(get_node_property(node, "border_color", active_theme))
+	border_width := parse_number_gfx(get_node_property(node, "border_width", active_theme), 0)
 
-	// The design language specifies a visual body only for non-transparent
-	// backgrounds. This keeps text nodes from looking like debug rectangles.
-	if bg_color.a != 0 {
-		graphics_draw_rect(ctx, node.rect, bg_color, true)
+	// Transparent nodes remain text-only unless they explicitly declare a border.
+	if bg_color.a != 0 || (border_color.a != 0 && border_width > 0) {
+		graphics_draw_box(ctx, node.rect, bg_color, border_color, radius, border_width)
 	}
 
 	// Only render text for real UI label/button nodes
@@ -231,17 +305,53 @@ render_node_tree :: proc(ctx: ^Graphics_Context, node: ^Node, active_theme: Them
 			text_color := hex_to_color(text_color_str)
 			padding_str := get_node_property(node, "padding", active_theme)
 			padding := parse_number_gfx(padding_str, 4)
+			text_align := get_node_property(node, "text_align", active_theme)
+			vertical_align := get_node_property(node, "text_vertical_align", active_theme)
+			line_height := parse_number_gfx(get_node_property(node, "line_height", active_theme), 0)
+			content_x := node.rect.x + padding
+			content_y := node.rect.y + padding
+			content_width := node.rect.width - 2 * padding
+			content_height := node.rect.height - 2 * padding
 
-			graphics_draw_wrapped_text_raylib(
-				ctx,
-				content_str,
-				node.rect.x + padding,
-				node.rect.y + padding,
-				node.rect.width - 2 * padding,
-				node.rect.height - 2 * padding,
-				font_size,
-				text_color,
-			)
+			// Buttons are compact, single-line controls by default. Centering their
+			// labels gives them a deliberate visual rhythm without extra markup.
+			if node.origin_definition == "Button" {
+				if text_align == "left" || text_align == "" {
+					text_align = "center"
+				}
+				if vertical_align == "middle" {
+					content_y = node.rect.y + (node.rect.height - font_size) / 2
+				} else if vertical_align == "bottom" {
+					content_y = node.rect.y + node.rect.height - padding - font_size
+				}
+				graphics_draw_aligned_text_raylib(
+					ctx,
+					content_str,
+					content_x,
+					content_y,
+					content_width,
+					font_size,
+					text_color,
+					text_align,
+				)
+			} else {
+				if text_align == "" {
+					text_align = "left"
+				}
+
+				graphics_draw_wrapped_text_raylib(
+					ctx,
+					content_str,
+					content_x,
+					content_y,
+					content_width,
+					content_height,
+					font_size,
+					line_height,
+					text_color,
+					text_align,
+				)
+			}
 		}
 	}
 
