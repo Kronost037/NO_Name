@@ -36,14 +36,16 @@ component Card {
         width: 260
         height: 44
         content: "Continue"
+        text_align: left
         background: $accent
 
         hover {
             background: #6aa0ff
+            text_vertical_align: middle
         }
 
         pressed {
-            background: #3f72cc
+            background: #cc3f67
         }
     }
 } 
