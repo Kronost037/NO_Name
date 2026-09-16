@@ -1,0 +1,220 @@
+theme Nightfall active {
+    background: #0b1020
+    panel: #171f35
+    panel_alt: #202a45
+    accent: #6c8cff
+    accent_bright: #9f7aea
+    button: #2b416f
+    button_hover: #42629d
+    text: #eff4ff
+    muted: #a8b5d3
+    success: #42d3a2
+}
+
+component Brand {
+    width: 900
+    height: 88
+    layout: vertical
+    gap: 4
+
+    Text {
+        height: 44
+        content: "DECLARATIVE UI"
+        font_size: 34
+        text_color: $text
+    }
+
+    Text {
+        height: 26
+        content: "A visual language for calm, precise interfaces"
+        font_size: 16
+        text_color: $muted
+    }
+}
+
+component StatusCard {
+    width: 340
+    height: 190
+    padding: 24
+    background: $panel
+    layout: vertical
+    gap: 10
+
+    Text {
+        height: 30
+        content: "LIVE CANVAS"
+        font_size: 21
+        text_color: $accent
+    }
+
+    Text {
+        height: 76
+        content: "Components, themes and layout are resolved in real time."
+        font_size: 14
+        text_color: $text
+    }
+
+    Text {
+        height: 20
+        content: "STATUS: ONLINE"
+        font_size: 12
+        text_color: $success
+    }
+}
+
+component GuideCard {
+    width: 340
+    height: 190
+    padding: 24
+    background: $panel_alt
+    layout: vertical
+    gap: 10
+
+    Text {
+        height: 30
+        content: "READY TO CREATE"
+        font_size: 21
+        text_color: $accent_bright
+    }
+
+    Text {
+        height: 76
+        content: "Choose an action on the right and start building your next interface."
+        font_size: 14
+        text_color: $text
+    }
+
+    Text {
+        height: 20
+        content: "TIP: HOVER OVER A BUTTON"
+        font_size: 12
+        text_color: $muted
+    }
+}
+
+component AccentRail {
+    width: 8
+    height: 420
+    background: $accent
+}
+
+component Menu {
+    width: 360
+    height: 410
+    padding: 28
+    background: $panel_alt
+    layout: vertical
+    gap: 12
+
+    Text {
+        height: 48
+        content: "CONTROL DECK"
+        font_size: 29
+        text_color: $text
+    }
+
+    Text {
+        height: 30
+        content: "Choose your next move"
+        font_size: 14
+        text_color: $muted
+    }
+
+    Button {
+        width: 304
+        height: 48
+        background: $button
+        content: "New Canvas"
+        font_size: 18
+        text_color: $text
+        hover {
+            background: $button_hover
+        }
+    }
+
+    Button {
+        width: 304
+        height: 48
+        background: $button
+        content: "Open Design"
+        font_size: 18
+        text_color: $text
+        hover {
+            background: $button_hover
+        }
+    }
+
+    Button {
+        width: 304
+        height: 48
+        background: $button
+        content: "Theme Studio"
+        font_size: 18
+        text_color: $text
+        hover {
+            background: $button_hover
+        }
+    }
+
+    Button {
+        width: 304
+        height: 48
+        background: $button
+        content: "Export Build"
+        font_size: 18
+        text_color: $text
+        hover {
+            background: $button_hover
+        }
+    }
+}
+
+component Footer {
+    width: 620
+    height: 26
+    layout: vertical
+
+    Text {
+        height: 26
+        content: "NIGHTFALL THEME  /  V0.1  /  ALL SYSTEMS READY"
+        font_size: 12
+        text_color: $muted
+    }
+}
+
+screen MainMenu active {
+    width: 1280
+    height: 800
+    background: $background
+    layout: free
+
+    Brand #brand {
+        x: 110
+        y: 72
+    }
+
+    StatusCard #status {
+        x: 110
+        y: 202
+    }
+
+    GuideCard #guide {
+        x: 110
+        y: 432
+    }
+
+    AccentRail #accent_rail {
+        x: 620
+        y: 170
+    }
+
+    Menu #mainmenu {
+        x: 670
+        y: 170
+    }
+
+    Footer #footer {
+        x: 110
+        y: 704
+    }
+}
