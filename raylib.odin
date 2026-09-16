@@ -123,6 +123,7 @@ graphics_draw_text_raylib :: proc(
 	x: f64,
 	y: f64,
 	font_size: f64,
+	letter_spacing: f64,
 	color: Color,
 ) {
 	rl_color := rl.Color{color.r, color.g, color.b, color.a}
@@ -132,31 +133,49 @@ graphics_draw_text_raylib :: proc(
 	cstr := strings.clone_to_cstring(text)
 	defer delete(cstr)
 
-	rl.DrawText(cstr, i32(x), i32(y), i32(font_size), rl_color)
+	if letter_spacing <= 0 {
+		rl.DrawText(cstr, i32(x), i32(y), i32(font_size), rl_color)
+		return
+	}
+
+	// DrawText keeps raylib's bitmap font crisp. DrawTextEx rescales that font
+	// and can produce broken-looking pixels at non-native sizes, so apply tracking
+	// ourselves instead of relying on DrawTextEx's spacing parameter.
+	draw_x := x
+	for glyph in text {
+		glyph_cstr := [2]u8{u8(glyph), 0}
+		glyph_ptr := cstring(&glyph_cstr[0])
+		rl.DrawText(glyph_ptr, i32(draw_x), i32(y), i32(font_size), rl_color)
+		draw_x += f64(rl.MeasureText(glyph_ptr, i32(font_size))) + letter_spacing
+	}
 }
 
-graphics_measure_text_raylib :: proc(text: string, font_size: f64) -> f64 {
+graphics_measure_text_raylib :: proc(text: string, font_size, letter_spacing: f64) -> f64 {
 	cstr := strings.clone_to_cstring(text)
 	defer delete(cstr)
-	return f64(rl.MeasureText(cstr, i32(font_size)))
+	width := f64(rl.MeasureText(cstr, i32(font_size)))
+	if letter_spacing > 0 && len(text) > 1 {
+		width += letter_spacing * f64(len(text) - 1)
+	}
+	return width
 }
 
 graphics_draw_aligned_text_raylib :: proc(
 	ctx: ^Graphics_Context,
 	text: string,
-	x, y, available_width, font_size: f64,
+	x, y, available_width, font_size, letter_spacing: f64,
 	color: Color,
 	align: string,
 ) {
 	draw_x := x
-	text_width := graphics_measure_text_raylib(text, font_size)
+	text_width := graphics_measure_text_raylib(text, font_size, letter_spacing)
 	switch align {
 	case "center":
 		draw_x += (available_width - text_width) / 2
 	case "right":
 		draw_x += available_width - text_width
 	}
-	graphics_draw_text_raylib(ctx, text, draw_x, y, font_size, color)
+	graphics_draw_text_raylib(ctx, text, draw_x, y, font_size, letter_spacing, color)
 }
 
 // Draw text within a node's content width. Layout remains explicit; this only
@@ -164,7 +183,7 @@ graphics_draw_aligned_text_raylib :: proc(
 graphics_draw_wrapped_text_raylib :: proc(
 	ctx: ^Graphics_Context,
 	text: string,
-	x, y, max_width, max_height, font_size, line_height: f64,
+	x, y, max_width, max_height, font_size, line_height, letter_spacing: f64,
 	color: Color,
 	align: string,
 ) {
@@ -186,7 +205,7 @@ graphics_draw_wrapped_text_raylib :: proc(
 			if line_y + font_size > y + max_height {
 				return
 			}
-			graphics_draw_aligned_text_raylib(ctx, text[line_start:i], x, line_y, max_width, font_size, color, align)
+			graphics_draw_aligned_text_raylib(ctx, text[line_start:i], x, line_y, max_width, font_size, letter_spacing, color, align)
 			line_y += actual_line_height
 			i += 1
 			line_start = i
@@ -199,7 +218,7 @@ graphics_draw_wrapped_text_raylib :: proc(
 		}
 
 		candidate := text[line_start : i + 1]
-		candidate_width := graphics_measure_text_raylib(candidate, font_size)
+		candidate_width := graphics_measure_text_raylib(candidate, font_size, letter_spacing)
 		if candidate_width > max_width {
 			break_at := i
 			next_start := i
@@ -215,7 +234,7 @@ graphics_draw_wrapped_text_raylib :: proc(
 			if line_y + font_size > y + max_height {
 				return
 			}
-			graphics_draw_aligned_text_raylib(ctx, text[line_start:break_at], x, line_y, max_width, font_size, color, align)
+			graphics_draw_aligned_text_raylib(ctx, text[line_start:break_at], x, line_y, max_width, font_size, letter_spacing, color, align)
 			line_y += actual_line_height
 			line_start = next_start
 			i = next_start
@@ -227,7 +246,7 @@ graphics_draw_wrapped_text_raylib :: proc(
 	}
 
 	if line_start < len(text) && line_y + font_size <= y + max_height {
-		graphics_draw_aligned_text_raylib(ctx, text[line_start:], x, line_y, max_width, font_size, color, align)
+		graphics_draw_aligned_text_raylib(ctx, text[line_start:], x, line_y, max_width, font_size, letter_spacing, color, align)
 	}
 }
 
@@ -308,6 +327,7 @@ render_node_tree :: proc(ctx: ^Graphics_Context, node: ^Node, active_theme: Them
 			text_align := get_node_property(node, "text_align", active_theme)
 			vertical_align := get_node_property(node, "text_vertical_align", active_theme)
 			line_height := parse_number_gfx(get_node_property(node, "line_height", active_theme), 0)
+			letter_spacing := parse_number_gfx(get_node_property(node, "letter_spacing", active_theme), 0)
 			content_x := node.rect.x + padding
 			content_y := node.rect.y + padding
 			content_width := node.rect.width - 2 * padding
@@ -331,6 +351,7 @@ render_node_tree :: proc(ctx: ^Graphics_Context, node: ^Node, active_theme: Them
 					content_y,
 					content_width,
 					font_size,
+					letter_spacing,
 					text_color,
 					text_align,
 				)
@@ -348,6 +369,7 @@ render_node_tree :: proc(ctx: ^Graphics_Context, node: ^Node, active_theme: Them
 					content_height,
 					font_size,
 					line_height,
+					letter_spacing,
 					text_color,
 					text_align,
 				)

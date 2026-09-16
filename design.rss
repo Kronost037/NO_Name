@@ -6,7 +6,8 @@ theme Nightfall active {
     accent_bright: #9f7aea
     button: #2b416f
     button_hover: #42629d
-    text: #eff4ff
+    button_pressed: #20345c
+    text: #8f96a7
     muted: #a8b5d3
     success: #42d3a2
     border: #2d3b60
@@ -23,6 +24,7 @@ component Brand {
         height: 44
         content: "DECLARATIVE UI"
         font_size: 34
+        letter_spacing: 5
         text_color: $text
     }
 
@@ -30,6 +32,7 @@ component Brand {
         height: 26
         content: "A visual language for calm, precise interfaces"
         font_size: 16
+        letter_spacing: 3
         text_color: $muted
     }
 }
@@ -49,21 +52,24 @@ component StatusCard {
         height: 30
         content: "LIVE CANVAS"
         font_size: 21
+        letter_spacing: 5
         text_color: $accent
     }
 
     Text {
         height: 76
         content: "Components, themes and layout are resolved in real time."
-        font_size: 14
-        line_height: 20
+        font_size: 15
+        line_height: 24
+        letter_spacing: 2.25
         text_color: $text
     }
 
     Text {
         height: 20
         content: "STATUS: ONLINE"
-        font_size: 12
+        font_size: 16
+        letter_spacing: 5
         text_color: $success
     }
 }
@@ -83,14 +89,16 @@ component GuideCard {
         height: 30
         content: "READY TO CREATE"
         font_size: 21
+        letter_spacing: 5
         text_color: $accent_bright
     }
 
     Text {
         height: 76
         content: "Choose an action on the right and start building your next interface."
-        font_size: 14
-        line_height: 20
+        font_size: 15
+        line_height: 24
+        letter_spacing: 2.5
         text_color: $text
     }
 
@@ -98,6 +106,7 @@ component GuideCard {
         height: 20
         content: "TIP: HOVER OVER A BUTTON"
         font_size: 12
+        letter_spacing: 5
         text_color: $muted
     }
 }
@@ -124,6 +133,7 @@ component Menu {
         height: 48
         content: "CONTROL DECK"
         font_size: 29
+        letter_spacing: 5
         text_color: $text
         text_align: center
     }
@@ -132,6 +142,7 @@ component Menu {
         height: 30
         content: "Choose your next move"
         font_size: 14
+        letter_spacing: 3
         text_color: $muted
         text_align: center
     }
@@ -143,13 +154,17 @@ component Menu {
         radius: 10
         border_color: $button_border
         border_width: 1
-        content: "New Canvas"
+        content: "New"
         font_size: 18
+        letter_spacing: 3
         text_color: $text
         text_align: center
         text_vertical_align: middle
         hover {
             background: $button_hover
+        }
+        pressed {
+            background: $button_pressed
         }
     }
 
@@ -160,13 +175,17 @@ component Menu {
         radius: 10
         border_color: $button_border
         border_width: 1
-        content: "Open Design"
+        content: "Open Project"
         font_size: 18
+        letter_spacing: 3
         text_color: $text
         text_align: center
         text_vertical_align: middle
         hover {
             background: $button_hover
+        }
+        pressed {
+            background: $button_pressed
         }
     }
 
@@ -177,13 +196,17 @@ component Menu {
         radius: 10
         border_color: $button_border
         border_width: 1
-        content: "Theme Studio"
+        content: "Studio"
         font_size: 18
+        letter_spacing: 3
         text_color: $text
         text_align: center
         text_vertical_align: middle
         hover {
             background: $button_hover
+        }
+        pressed {
+            background: $button_pressed
         }
     }
 
@@ -194,13 +217,17 @@ component Menu {
         radius: 10
         border_color: $button_border
         border_width: 1
-        content: "Export Build"
+        content: "Dashboard"
         font_size: 18
+        letter_spacing: 3
         text_color: $text
         text_align: center
         text_vertical_align: middle
         hover {
             background: $button_hover
+        }
+        pressed {
+            background: $button_pressed
         }
     }
 }
@@ -212,8 +239,9 @@ component Footer {
 
     Text {
         height: 26
-        content: "NIGHTFALL THEME  /  V0.1  /  ALL SYSTEMS READY"
+        content: "NIGHTFALL THEME  /  V0.1  /  TEST"
         font_size: 12
+        letter_spacing: 3
         text_color: $muted
     }
 }

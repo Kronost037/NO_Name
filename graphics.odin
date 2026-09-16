@@ -114,7 +114,7 @@ graphics_draw_text :: proc(
 	font_size: f64,
 	color: Color,
 ) {
-	graphics_draw_text_raylib(ctx, text, x, y, font_size, color)
+	graphics_draw_text_raylib(ctx, text, x, y, font_size, 0, color)
 }
 
 graphics_update_input :: proc(ctx: ^Graphics_Context, root_node: ^Node) {
