@@ -1,13 +1,6 @@
-package main
+package ui
 
-import "core:fmt"
 import "core:strconv"
-
-// Resolved property value for a node at runtime
-Resolved_Property :: struct {
-	name:  string,
-	value: string, // Always string representation for now
-}
 
 get_property_default :: proc(prop_name: string) -> string {
 	spec, found := property_spec(prop_name)
@@ -45,13 +38,6 @@ resolve_theme_reference :: proc(
 // Get the highest-precedence explicit property declaration for a node
 // Precedence: instance override > component definition > default (none found)
 get_base_property_decl :: proc(node: ^Node, prop_name: string) -> (Property_Decl, bool) {
-	// Check instance-level overrides first
-	for prop in node.instance_properties {
-		if prop.name == prop_name {
-			return prop, true
-		}
-	}
-
 	// Check computed style (merged from component definition)
 	for prop in node.computed_style.properties {
 		if prop.name == prop_name {
@@ -76,30 +62,8 @@ get_active_state_decl :: proc(node: ^Node, prop_name: string) -> (Property_Decl,
 		}
 	}
 
-	// Check instance-level pressed state
-	for state in node.instance_states {
-		if state.name == "pressed" && node.interaction.pressed {
-			for prop in state.properties {
-				if prop.name == prop_name {
-					return prop, true
-				}
-			}
-		}
-	}
-
 	// Check hover (lower precedence than pressed)
 	for state in node.computed_style.states {
-		if state.name == "hover" && node.interaction.hover {
-			for prop in state.properties {
-				if prop.name == prop_name {
-					return prop, true
-				}
-			}
-		}
-	}
-
-	// Check instance-level hover state
-	for state in node.instance_states {
 		if state.name == "hover" && node.interaction.hover {
 			for prop in state.properties {
 				if prop.name == prop_name {
@@ -112,7 +76,7 @@ get_active_state_decl :: proc(node: ^Node, prop_name: string) -> (Property_Decl,
 	return Property_Decl{}, false
 }
 
-// Canonical property resolution per spec section 16
+// Canonical property resolution shared by layout and rendering.
 resolve_property :: proc(
 	node: ^Node,
 	prop_name: string,
@@ -212,32 +176,12 @@ normalize_property_value :: proc(prop_name: string, value: string) -> string {
 	return value
 }
 
-// Resolve all properties for a node (populate a style map)
-resolve_node_style :: proc(node: ^Node, active_theme: Theme_Definition) {
-	// Properties are resolved on-demand during layout
-	// This is a hook for future caching/optimization
-	_ = node
-	_ = active_theme
-}
-
 // Get a resolved property value for a node
 get_resolved_property :: proc(
 	node: ^Node,
 	prop_name: string,
 	active_theme: Theme_Definition,
 ) -> string {
+	if prop_name == "content" && node.has_host_content { return node.host_content }
 	return resolve_property(node, prop_name, node.parent, active_theme)
-}
-
-// Recursively resolve all nodes in a tree
-resolve_tree :: proc(node: ^Node, active_theme: Theme_Definition) {
-	if node == nil {
-		return
-	}
-
-	resolve_node_style(node, active_theme)
-
-	for child in node.children {
-		resolve_tree(child, active_theme)
-	}
 }
