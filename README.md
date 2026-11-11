@@ -1,178 +1,133 @@
-# Declarative UI Language
+# NO NAME — declarative desktop UI
 
-A small declarative UI language written in Odin.
+Describe the view in `.rss`. Keep the application in Odin.
 
-The idea is simple: describe an interface in a `.rss` file, and let the program parse, validate, resolve, lay out, and render it.
+Use the same UI library for a game menu, a leaderboard, an overlay, or a standalone desktop window. The language provides structure, reusable components, themes, layout, and interaction styles. Your program supplies data and decides what a click does.
 
-The project is still in early development.
-
-## Example
-
-A simple component can look like this:
+![Game menu](docs/screenshots/menu.png)
 
 ```rss
-theme Dark active {
-    background: #101820
-    text: #ffffff
-    accent: #4f8cff
+theme Game active { accent: #bded82 }
+
+component Action : Button {
+    width: 240 height: 48
+    background: $accent
+    text_color: black
+    text_align: center
+    text_vertical_align: middle
+    hover { background: #d7ffa6 }
+    pressed { background: #8db95b }
 }
 
-component Card {
-    width: 300
-    height: 160
-    padding: 20
-    background: $background
-    layout: vertical
-    gap: 10
-
-    Text {
-        height: 30
-        content: "Hello"
-        font_size: 24
-        text_color: $text
-    }
-
-    Button {
-        width: 260
-        height: 44
-        content: "Continue"
-        text_align: left
-        background: $accent
-
-        hover {
-            background: #6aa0ff
-            text_vertical_align: middle
-        }
-
-        pressed {
-            background: #cc3f67
-        }
-    }
-} 
-
-screen Main active {
-    width: 800
-    height: 600
-    background: $background
-
-    Card {
-        x: 100
-        y: 100
-    }
+screen Menu active {
+    width: 800 height: 600 padding: 32
+    layout: vertical gap: 16
+    Text #score { height: 32 content: "Score: 0" }
+    Action #play { content: "Play" }
 }
 ```
 
-The language uses a CSS-like property syntax, but its structure is based around components, screens, states, and nested UI nodes.
+## Run it
 
-##### Output of design.rss:
-![alt text](design.rss.png)
+Install [Odin](https://odin-lang.org/docs/install/). The standalone demo uses Odin's bundled raylib and a bundled DejaVu font. On Linux, install your distribution's C compiler and X11 development libraries (`clang`, `libx11-dev` on Debian/Ubuntu).
 
-## What it currently supports
+From this repository's root:
 
-* Themes and theme references such as `$background`
-* Components
-* Component inheritance
-* Screens
-* Nested UI nodes
-* Instance-level property and state overrides
-* `hover` and `pressed` states
-* Typed properties and semantic validation
-* Free, vertical, and horizontal layouts
-* Padding and layout gaps
-* Background colors, borders, and rounded corners
-* Text alignment and vertical alignment
-* Basic text wrapping
-* Mouse hover and press detection
-* Raylib rendering
-
-The built-in UI types are:
-
-* `Text`
-* `Button`
-* `Panel`
-
-An `Image` type is defined in the language, but image rendering is not implemented yet.
-
-## How it works
-
-The current pipeline is roughly:
-
-```text
-design.rss
-    ↓
-Lexer
-    ↓
-Parser
-    ↓
-Semantic validation
-    ↓
-Component / property resolution
-    ↓
-Runtime UI tree
-    ↓
-Layout
-    ↓
-Raylib rendering
-```
-
-The project is written fully in Odin, with raylib used for the current rendering backend.
-
-## Running
-
-### Requirements
-
-* [Odin](https://odin-lang.org/)
-
-From the repository directory:
-
-```bash
+```sh
 odin run .
+odin run examples/embedded
 ```
 
-The example interface is defined in:
+The standalone showcase has a menu, a session screen, a leaderboard, and two themes. Start a session, earn points, view scores, and switch themes. The Odin host owns the score, starting at 5000; the UI receives formatted text and returns clicks.
 
-```text
-design.rss
+The embedding example draws an interactive HUD inside an existing game window. The original Nightfall example is preserved:
+
+```sh
+odin run . -- examples/nightfall.rss
 ```
 
-Edit that file to experiment with the language.
+## Embed in your project
 
-## Project structure
+Copy `ui/` and `graphics/`, then use the raylib adapter or implement your own backend. You can also keep this repository as a vendored dependency and adjust the import paths. There are no third-party UI framework dependencies.
 
-```text
-lexer.odin       Tokenization
-parser.odin      Parsing and syntax structures
-semantic.odin    Validation and component resolution
-resolver.odin    Runtime property resolution
-runtime.odin     Runtime UI tree
-layout.odin      UI layout
-graphics.odin    Graphics abstraction
-raylib.odin      Raylib rendering backend
-design.rss       Example UI written in the language
+```odin
+import ui "path/to/NO_Name/ui"
+import backend "path/to/NO_Name/backends/raylib"
+
+// Once, after your game has created its window:
+doc, err := ui.load_file("menu.rss")
+// Handle err before using doc. On failure, the caller deletes the error string.
+defer ui.destroy(doc)
+graphics := backend.create()
+
+// Each frame, in your own window/frame loop:
+event := ui.update(doc, ui.Input{
+    pointer_x = mouse_x, pointer_y = mouse_y,
+    pointer_down = mouse_down,
+    pointer_pressed = mouse_pressed,
+    pointer_released = mouse_released,
+    cancel = lost_focus,
+}, ui.Rect{width = window_width, height = window_height})
+
+if event.kind == .Click && event.target.instance_id == "play" {
+    // Start your game, open another screen, or run your own callback.
+}
+if !event.handled {
+    // Your world may handle the pointer outside the UI.
+}
+ui.set_text(doc, ui.find_child(doc.root, "score"), "Score: 1200")
+
+// Between your host's BeginDrawing and EndDrawing, after drawing your world:
+ui.draw(doc, &graphics)
 ```
 
-## Current limitations
+See [the complete embedding example](examples/embedded/main.odin), [the host API](docs/embedding.md), and [the language guide and grammar](docs/language.md).
 
-This is still a small language rather than a complete UI framework.
+## Check and test
 
-It currently does not provide:
+The library and checker build without raylib, X11, or a display:
 
-* Application scripting or event callbacks
-* Navigation or application state
-* Animation
-* A visual editor
-* Responsive layout
-* Custom image rendering
-* A complete widget library
+```sh
+odin test ui
+odin run tools/check -- design.rss
+odin run tools/check -- examples/nightfall.rss
+```
 
-The focus for now is the language and the UI pipeline itself.
+To build the standalone host and embedding example:
 
-## Why this exists
+```sh
+odin build . -out:no-name
+odin build examples/embedded -out:embedded
+```
 
-This started as an experiment in building a declarative UI system from scratch.
+A bounded graphical smoke run is available for CI:
 
-The main goal is to explore how a UI description can move from source text to a validated runtime tree and finally to something rendered on screen, without relying on an existing UI framework.
+```sh
+./no-name --frames 3 --screenshot preview.png
+```
 
-## License
+Linux CI runs the language/runtime tests, validates both examples, builds both hosts, and smoke-runs the standalone host under Xvfb. Odin is pinned to `dev-2026-11a` in CI.
 
-MIT License
+## Structure
+
+| Path | Responsibility |
+| --- | --- |
+| `ui/lexer.odin`, `ui/parser*.odin`, `ui/syntax.odin` | Source text to syntax tree |
+| `ui/semantic*.odin`, `ui/properties.odin` | Names, types, capabilities, themes, diagnostics |
+| `ui/component_merge.odin`, `ui/runtime.odin` | Inheritance, overrides, nested instances |
+| `ui/resolver.odin`, `ui/layout.odin` | Computed values and geometry |
+| `ui/document.odin`, `ui/input.odin` | Public document, data, screen, and event API |
+| `ui/render.odin`, `ui/text_layout.odin` | Backend-independent drawing and text flow |
+| `graphics/api.odin` | Backend contract: boxes, text, text measurement |
+| `backends/raylib/` | Raylib adapter; no language or UI-tree logic |
+| `backends/recording/` | Headless backend that records drawing commands |
+| `main.odin` | Standalone host and demo application logic |
+| `examples/embedded/` | Integration into an existing game loop |
+
+## Prototype scope
+
+Implemented: themes, component inheritance and composition, local child IDs, property/state overrides, three layout modes, host text updates, host navigation/theme switching, captured pointer clicks, rounded boxes/borders, aligned and wrapped UTF-8 text, and independent rendering backends.
+
+This is an initial prototype. It has no scripting language, automatic reactive bindings, keyboard/gamepad focus, scrolling/clipping, animations, grid/flex/percentage sizing, or image rendering. `Image`/`source` and `font` remain reserved syntax from the original experiment; image nodes and nonempty `font` properties report an unsupported-feature error. The raylib host selects a font for the whole graphics context. UTF-8 boundaries are preserved; glyph coverage and shaping depend on the renderer/font.
+
+See [the resolved inconsistencies and remaining limits](docs/design-decisions.md). MIT license; the bundled font has its [own license](assets/FONT-LICENSE.txt).

@@ -1,6 +1,5 @@
-package main
+package ui
 
-import "core:fmt"
 import "core:strconv"
 
 // Content area of a node after applying padding
@@ -68,8 +67,8 @@ layout_free :: proc(node: ^Node, active_theme: Theme_Definition) {
 		x_value := get_resolved_property(child, "x", active_theme)
 		y_value := get_resolved_property(child, "y", active_theme)
 
-		x := parse_number(x_value)
-		y := parse_number(y_value)
+		x, _ := strconv.parse_f64(x_value)
+		y, _ := strconv.parse_f64(y_value)
 
 		// Width and height are required
 		width_value := get_resolved_property(child, "width", active_theme)
@@ -106,7 +105,7 @@ layout_vertical :: proc(node: ^Node, active_theme: Theme_Definition) {
 		height_value := get_resolved_property(child, "height", active_theme)
 
 		width := parse_number(width_value)
-		if width == 0 {
+		if !has_dimension(child, "width") {
 			width = content.width
 		}
 		height := parse_number(height_value)
@@ -140,7 +139,7 @@ layout_horizontal :: proc(node: ^Node, active_theme: Theme_Definition) {
 
 		width := parse_number(width_value)
 		height := parse_number(height_value)
-		if height == 0 {
+		if !has_dimension(node.children[i], "height") {
 			height = content.height
 		}
 
@@ -207,4 +206,11 @@ compute_layout :: proc(root: ^Node, active_theme: Theme_Definition) {
 
 	// Layout entire tree starting from root
 	layout_tree(root, active_theme)
+}
+
+// Omitted cross-axis sizes fill their parent; explicit zero stays zero.
+has_dimension :: proc(node: ^Node, name: string) -> bool {
+    _, base := get_base_property_decl(node, name)
+    _, state := get_active_state_decl(node, name)
+    return base || state
 }

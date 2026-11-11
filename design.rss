@@ -1,284 +1,125 @@
-theme Nightfall active {
-    background: #0b1020
-    panel: #171f35
-    panel_alt: #202a45
-    accent: #6c8cff
-    accent_bright: #9f7aea
-    button: #2b416f
-    button_hover: #42629d
-    button_pressed: #20345c
-    text: #8f96a7
-    muted: #a8b5d3
-    success: #42d3a2
-    border: #2d3b60
-    button_border: #5474b5
+// One document, several screens. The host supplies scores and handles actions.
+theme Midnight active {
+    canvas: #0e1424
+    surface: #192238
+    raised: #24314b
+    ink: #edf2fa
+    muted: #9aaac2
+    accent: #bded82
+    accent_ink: #152321
+    hot: #d7ffa6
+    down: #8db95b
+}
+theme Daylight {
+    canvas: #e9edf3
+    surface: #ffffff
+    raised: #dce4ef
+    ink: #152238
+    muted: #53647d
+    accent: #315eab
+    accent_ink: #ffffff
+    hot: #4376c7
+    down: #264b89
+}
+component Action : Button {
+    width: 300 height: 54 padding: 16
+    radius: 8 background: $raised
+    text_color: $ink font_size: 20
+    text_align: left text_vertical_align: middle
+    hover { background: $accent text_color: $accent_ink }
+    pressed { background: $down text_color: $accent_ink }
+}
+component Primary : Action {
+    background: $accent text_color: $accent_ink
+    hover { background: $hot }
+}
+component Caption : Text {
+    height: 24 font_size: 14 text_color: $muted letter_spacing: 1
+}
+component Heading : Text {
+    height: 56 font_size: 42 text_color: $ink
+}
+component Card : Panel {
+    width: 440 height: 110 padding: 20 radius: 10
+    background: $surface layout: vertical gap: 8
+}
+component PlayerRow : Panel {
+    width: 700 height: 72 padding: 18 radius: 8
+    background: $surface layout: horizontal gap: 16
+    Caption #rank { width: 36 height: 30 text_color: $accent font_size: 22 content: "01" }
+    Text #player { width: 410 height: 30 content: "PLAYER" font_size: 22 }
+    Text #score { width: 150 height: 30 content: "0" font_size: 22 text_align: right }
+}
+// Derived components replace a matching local child ID without adding a row.
+component RunnerUp : PlayerRow {
+    Caption #rank { width: 36 height: 30 content: "02" font_size: 22 }
+}
+component ThirdPlace : PlayerRow {
+    Caption #rank { width: 36 height: 30 content: "03" font_size: 22 }
 }
 
-component Brand {
-    width: 900
-    height: 88
-    layout: vertical
-    gap: 4
-
-    Text {
-        height: 44
-        content: "DECLARATIVE UI"
-        font_size: 34
-        letter_spacing: 5
-        text_color: $text
+screen Menu active {
+    width: 1120 height: 720 padding: 56 background: $canvas
+    text_color: $ink layout: vertical gap: 12
+    Caption { content: "NO NAME / DECLARATIVE DESKTOP UI" }
+    Heading { content: "Your next adventure." }
+    Caption { height: 40 content: "A game menu today. A standalone desktop app tomorrow." }
+    Panel {
+        width: 1008 height: 360 layout: horizontal gap: 70
+        Panel {
+            width: 340 height: 360 layout: vertical gap: 12
+            Primary #play { content: "Start a session" }
+            Action #leaders { content: "Leaderboard" }
+            Action #theme_toggle { content: "Switch theme" }
+            Action #quit { content: "Quit" }
+            Caption { content: "Hover. Press. Release to activate." }
+        }
+        Panel {
+            width: 550 height: 360 layout: vertical gap: 14
+            Card {
+                Caption { content: "REUSABLE COMPONENTS" }
+                Text { height: 30 content: "Define once. Inherit. Override." font_size: 22 }
+            }
+            Card {
+                Caption { content: "NATIVE HOST, DECLARATIVE VIEW" }
+                Text { height: 30 content: "Your game owns the data and the loop." font_size: 20 }
+            }
+            Caption { height: 58 content: "Two themes. Three screens. Shared components. One small host API." }
+        }
     }
-
-    Text {
-        height: 26
-        content: "A visual language for calm, precise interfaces"
-        font_size: 16
-        letter_spacing: 3
-        text_color: $muted
-    }
+    Caption #status { width: 1000 height: 44 content: "READY / Powered by Odin. Rendered through a swappable backend." }
 }
 
-component StatusCard {
-    width: 340
-    height: 200
-    padding: 24
-    background: $panel
-    radius: 16
-    border_color: $border
-    border_width: 1
-    layout: vertical
-    gap: 10
-
-    Text {
-        height: 30
-        content: "LIVE CANVAS"
-        font_size: 21
-        letter_spacing: 5
-        text_color: $accent
+screen Leaderboard {
+    width: 1120 height: 720 padding: 56 background: $canvas
+    text_color: $ink layout: vertical gap: 14
+    Caption { content: "SESSION / LEADERBOARD" }
+    Heading { content: "The high scores." }
+    Caption { height: 36 content: "Player names and scores below arrive from the Odin host." }
+    PlayerRow #first {}
+    RunnerUp #second {}
+    ThirdPlace #third {}
+    Panel {
+        width: 700 height: 54 layout: horizontal gap: 16
+        Primary #refresh { content: "Simulate score update" }
+        Action #back { content: "Back to menu" }
     }
-
-    Text {
-        height: 76
-        content: "Components, themes and layout are resolved in real time."
-        font_size: 15
-        line_height: 24
-        letter_spacing: 2.25
-        text_color: $text
-    }
-
-    Text {
-        height: 20
-        content: "STATUS: ONLINE"
-        font_size: 16
-        letter_spacing: 5
-        text_color: $success
-    }
+    Caption #status { width: 1000 content: "Click to feed fresh game data into the same UI tree." }
 }
 
-component GuideCard {
-    width: 340
-    height: 200
-    padding: 24
-    background: $panel_alt
-    radius: 16
-    border_color: $border
-    border_width: 1
-    layout: vertical
-    gap: 10
-
-    Text {
-        height: 30
-        content: "READY TO CREATE"
-        font_size: 21
-        letter_spacing: 5
-        text_color: $accent_bright
+screen Session {
+    width: 1120 height: 720 padding: 56 background: $canvas
+    text_color: $ink layout: vertical gap: 16
+    Caption { content: "SESSION / HOST APPLICATION" }
+    Heading { content: "The game runs here." }
+    Card {
+        width: 700 height: 160
+        Caption { content: "LIVE HOST DATA" }
+        Text #points { height: 60 content: "Score: 0" font_size: 40 text_color: $accent }
+        Caption { content: "The UI receives text. The game keeps the score." }
     }
-
-    Text {
-        height: 76
-        content: "Choose an action on the right and start building your next interface."
-        font_size: 15
-        line_height: 24
-        letter_spacing: 2.5
-        text_color: $text
-    }
-
-    Text {
-        height: 20
-        content: "TIP: HOVER OVER A BUTTON"
-        font_size: 12
-        letter_spacing: 5
-        text_color: $muted
-    }
-}
-
-component AccentRail {
-    width: 8
-    height: 420
-    background: $accent
-    radius: 4
-}
-
-component Menu {
-    width: 360
-    height: 410
-    padding: 28
-    background: $panel_alt
-    radius: 20
-    border_color: $border
-    border_width: 1
-    layout: vertical
-    gap: 12
-
-    Text {
-        height: 48
-        content: "CONTROL DECK"
-        font_size: 29
-        letter_spacing: 5
-        text_color: $text
-        text_align: center
-    }
-
-    Text {
-        height: 30
-        content: "Choose your next move"
-        font_size: 14
-        letter_spacing: 3
-        text_color: $muted
-        text_align: center
-    }
-
-    Button {
-        width: 304
-        height: 48
-        background: $button
-        radius: 10
-        border_color: $button_border
-        border_width: 1
-        content: "New"
-        font_size: 18
-        letter_spacing: 3
-        text_color: $text
-        text_align: center
-        text_vertical_align: middle
-        hover {
-            background: $button_hover
-        }
-        pressed {
-            background: $button_pressed
-        }
-    }
-
-    Button {
-        width: 304
-        height: 48
-        background: $button
-        radius: 10
-        border_color: $button_border
-        border_width: 1
-        content: "Open Project"
-        font_size: 18
-        letter_spacing: 3
-        text_color: $text
-        text_align: center
-        text_vertical_align: middle
-        hover {
-            background: $button_hover
-        }
-        pressed {
-            background: $button_pressed
-        }
-    }
-
-    Button {
-        width: 304
-        height: 48
-        background: $button
-        radius: 10
-        border_color: $button_border
-        border_width: 1
-        content: "Studio"
-        font_size: 18
-        letter_spacing: 3
-        text_color: $text
-        text_align: center
-        text_vertical_align: middle
-        hover {
-            background: $button_hover
-        }
-        pressed {
-            background: $button_pressed
-        }
-    }
-
-    Button {
-        width: 304
-        height: 48
-        background: $button
-        radius: 10
-        border_color: $button_border
-        border_width: 1
-        content: "Dashboard"
-        font_size: 18
-        letter_spacing: 3
-        text_color: $text
-        text_align: center
-        text_vertical_align: middle
-        hover {
-            background: $button_hover
-        }
-        pressed {
-            background: $button_pressed
-        }
-    }
-}
-
-component Footer {
-    width: 620
-    height: 26
-    layout: vertical
-
-    Text {
-        height: 26
-        content: "NIGHTFALL THEME  /  V0.1  /  TEST"
-        font_size: 12
-        letter_spacing: 3
-        text_color: $muted
-    }
-}
-
-screen MainMenu active {
-    width: 1280
-    height: 800
-    background: $background
-    layout: free
-
-    Brand #brand {
-        x: 110
-        y: 72
-    }
-
-    StatusCard #status {
-        x: 110
-        y: 202
-    }
-
-    GuideCard #guide {
-        x: 110
-        y: 432
-    }
-
-    AccentRail #accent_rail {
-        x: 620
-        y: 170
-    }
-
-    Menu #mainmenu {
-        x: 670
-        y: 170
-    }
-
-    Footer #footer {
-        x: 110
-        y: 704
-    }
+    Primary #score { content: "Earn 100 points" }
+    Action #leaders { content: "View leaderboard" }
+    Action #back { content: "Back to menu" }
+    Caption { width: 900 height: 50 content: "In your own game, call update() and draw() inside your existing frame. No extra window." }
 }

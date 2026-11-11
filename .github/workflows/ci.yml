@@ -1,0 +1,30 @@
+name: Odin prototype
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install graphics build and smoke-test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang libx11-dev libgl1-mesa-dev xvfb
+      - name: Install Odin dev-2026-11a
+        run: |
+          mkdir -p "$RUNNER_TEMP/odin"
+          curl -fL --retry 3 https://github.com/odin-lang/Odin/releases/download/dev-2026-11a/odin-linux-amd64-dev-2026-11a.tar.gz -o "$RUNNER_TEMP/odin.tar.gz"
+          tar -xzf "$RUNNER_TEMP/odin.tar.gz" -C "$RUNNER_TEMP/odin"
+          dirname "$(find "$RUNNER_TEMP/odin" -type f -name odin -print -quit)" >> "$GITHUB_PATH"
+      - name: Test core and validate documents
+        run: |
+          odin test ui
+          odin run tools/check -- design.rss
+          odin run tools/check -- examples/nightfall.rss
+      - name: Build hosts
+        run: |
+          odin build . -out:no-name
+          odin build examples/embedded -out:embedded
+      - name: Smoke-test standalone graphics
+        run: xvfb-run -a ./no-name --frames 3

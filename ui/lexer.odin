@@ -1,7 +1,6 @@
-package main
-
+package ui
 import "core:fmt"
-import "core:os"
+
 
 Lexer_Error :: struct {
 	message: string,
@@ -78,7 +77,7 @@ is_num :: proc(b: u8) -> bool {
 
 skip_ignored :: proc(l: ^Lexer) {
 	for {
-		for l.ch == ' ' || l.ch == '\t' || l.ch == '\n' {
+		for l.ch == ' ' || l.ch == '\t' || l.ch == '\n' || l.ch == '\r' {
 			advance_char(l)
 		}
 

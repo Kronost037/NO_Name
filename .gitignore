@@ -1,3 +1,13 @@
 declarative_ui_designer_spec-final (1).md
 test.exe
-.gitignore
+/no-name
+/embedded
+/check
+/ui.bin
+*.o
+*.a
+*.exe
+*.pdb
+*.dll
+*.so
+.DS_Store
